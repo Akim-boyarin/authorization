@@ -1,4 +1,4 @@
-# Autorization    
+# Authorization    
 This app is realizing of user's authoriaztion, we can log-in using email/password or telephone data. It consists of client-side and server side.
 
 The application was realized using Vue.js on client and Node.js (Express.js) on server side. Also it has adaptive layout which was made on SCSS, with using "Mobile First" pattern and BEM-methodology.
