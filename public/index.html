@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realizing of authorization</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <div id="app" class="app">
+        <h1 class="app__title">{{ titleText }}</h1>
+
+        <!-- Авторизация -->
+        <div class="app__authorization authorization" v-if="!isAuthCompleted">
+            <!-- Вкладки типов -->
+            <ul class="authorization__tabs-list">
+                <li class="authorization__tab" v-bind:class="emailTab" v-on:click="chooseAuthByEmail"></li>
+                <li class="authorization__tab" v-bind:class="telTab" v-on:click="chooseAuthByTel"></li>
+            </ul>
+            <!-- Контент вкладок -->
+            <div class="authorization__tabs-content">
+                <!-- Сообщение об ошибке -->
+                <div class="error-message" v-bind:class="errorMessageClass">{{ errorMessageText }}</div>
+
+                <!-- По почте/паролю -->
+                <div class="authorization-by-email" v-if="authByEmail">
+                    <form class="authorization-by-email__form" action="/">
+                        <!-- Почта -->
+                        <div class="authorization-by-email__wrapper">
+                            <label class="authorization-by-email__email-label" for="email-input">Email:</label>
+                            <input class="authorization-by-email__email-input" id="email-input" name="email-input"
+                                type="email" v-model="email">
+                        </div>
+                        <!-- Пароль -->
+                        <div class="authorization-by-email__wrapper">
+                            <label class="authorization-by-email__password-label" for="password-input">Password:</label>
+                            <input class="authorization-by-email__password-input" id="password-input"
+                                name="password-input" type="password" v-model="password" required>
+                        </div>
+                        <!-- Кнопка -->
+                        <div class="authorization-by-email__wrapper">
+                            <button class="authorization-by-email__log-in-button" type="button" v-on:click="auth">Log in</button>
+                        </div>
+                    </form>
+                </div>
+                <!-- По телефону -->
+                <div class="authorization-by-tel" v-if="!authByEmail">
+                    <div class="authorization-by-tel__form">
+                        <!-- Телефон -->
+                        <div class="authorization-by-tel__wrapper">
+                            <label class="authorization-by-tel__tel-label" for="tel-input">Telephone:</label>
+                            <input 
+                                class="authorization-by-tel__tel-input" id="tel-input" name="tel-input" type="tel" 
+                                v-model="tel" 
+                                v-on:input="setVeiwToTelInput">
+                        </div>
+                        <!-- Кнопка -->
+                        <div class="authorization-by-tel__wrapper">
+                            <button class="authorization-by-tel__log-in-button" type="button" v-on:click="auth">Log in</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Успех -->
+        <div class="app__success success" v-if="isAuthCompleted">
+            <div class="content-wrapper">
+                <div class="success__body-wrapper">
+                    <div class="success__pic"></div>
+                    <h2 class="success__message">Great!</h2>
+                </div>
+                <div class="success__log-out-button-wrapper">
+                    <button class="success__log-out-button" v-on:click="logOut">Log out</button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Vue.js script -->
+    <script>
+        let application = new Vue({
+            el: "#app",
+            data: {
+                // Переключение между типами авторизации
+                authByEmail: true,
+                emailTab: {
+                    'authorization__tab--clicked': true,
+                },
+                telTab: {
+                    'authorization__tab--clicked': false,
+                },
+
+                // Данные для авторизации
+                email: "",
+                password: "",
+                tel: "",
+
+                // Успешность/неуспешность авторизации
+                errorMessageClass: {
+                    none: true,
+                },
+                errorMessageText: "",
+
+                // завершение авторизации
+                isAuthCompleted: false,
+
+            },
+            computed: {
+                titleText() {
+                    return (!this.isAuthCompleted) ? "Log in to your account" : "Success";
+                },
+            },
+            methods: {
+                // Переключение вкладок авторизации
+                chooseAuthByEmail() {
+                    this.authByEmail = true;
+                    this.emailTab['authorization__tab--clicked'] = true;
+                    this.telTab['authorization__tab--clicked'] = false;
+                },
+                chooseAuthByTel() {
+                    this.authByEmail = false;
+                    this.emailTab['authorization__tab--clicked'] = false;
+                    this.telTab['authorization__tab--clicked'] = true;
+                },
+                // Показать сообщение об ошибке
+                showErrorMessage(messageText) {
+                    this.errorMessageText = messageText;
+                    this.errorMessageClass.none = false;
+                    setTimeout(() => {
+                        this.errorMessageText = "";
+                        this.errorMessageClass.none = true;
+                    }, 2000);
+                },
+                // Валидация email
+                emailValidation(email = "gora@studio.ru") {
+                    // Проверка на то, что в него входят только цифры и латинские символы, a также точка и @, а также отстутствует всё остальное
+                    let desireSymbols = ".-@0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                    for (let i = 0; i < email.length; i++) {
+                        if (!desireSymbols.includes(email[i])) return false;
+                    }
+
+                    // Проверка на наличие "@"
+                    const DOG_SYMBOL = "@";
+                    if (!email.includes(DOG_SYMBOL)) return false; 
+
+                    return true;
+                },
+                // Валидация пароля
+                passwordValidation(password) {
+                    return !!password;
+                },
+                // Валидация телефона
+                // обработка ввода данных
+                setVeiwToTelInput(event) {
+                    let digitsSymbols = "0123456789";
+                    let allNeccessarySymbols = "+0123456789";
+                    
+                    let setView = telValue => {
+                        let dataToView = "";
+                        for (let i = 0; i < telValue.length; i++) {
+                            if (digitsSymbols.includes(telValue[i]) || (telValue[i] === "+" && !telValue.indexOf("+"))) dataToView += telValue[i]
+                        }
+
+                        return dataToView;
+                    };
+
+                    if (event.inputType === 'insertText') {
+                        // только плюс и цифры
+                        if (!allNeccessarySymbols.includes(event.data)) {
+                            let currentTelSymbols = this.tel.split("");
+                            this.tel = currentTelSymbols.filter(symbol => symbol !== event.data).join("");
+                        }
+
+                        // // запретить плюсы не в начале
+                        let currentTelSymbols = this.tel.split("");
+                        this.tel = currentTelSymbols.filter((symbol, index) => !(symbol === "+" && index > 0)).join("");
+                    } else if (event.inputType === 'insertFromPaste' || !(event instanceof InputEvent)) {
+                        this.tel = setView(this.tel);
+                    }
+                },
+                // проверка данных
+                checkTelData(telData) {
+                    // проверка на маску РФ
+                    if (!(telData.slice(0, 2) === "+7" || telData.slice(0, 1) === "8")) return false;
+
+                    // проверка на длину номера
+                    const RUSSIAN_NUMBER_LENGTH = 11;
+                    let dataToCheckLength = (telData.slice(0, 2) === "+7") ? "8" + telData.slice(2) : telData;
+                    if (dataToCheckLength.length !== RUSSIAN_NUMBER_LENGTH) return false;
+
+                    return true;
+                },
+                // преобразовать данные телефона для отпраки на сервер
+                setTelDataToSend(telData = "+79304073847") {
+                    let dataToSend;
+
+                    dataToSend = (telData.slice(0, 1) === "8") ? "+7" + telData.slice(1) : telData;
+                    dataToSend = `${dataToSend.slice(0, 2)} (${dataToSend.slice(2, 5)}) ${dataToSend.slice(5, 8)}-${dataToSend.slice(8, 10)}-${dataToSend.slice(10, 12)}`;
+
+                    return dataToSend;
+                },
+                // Авторизация
+                async auth() {
+                    let dataToSend = {};
+
+                    if (this.authByEmail) {
+                        if (!this.emailValidation(this.email) || !this.passwordValidation(this.password)) {
+                            this.showErrorMessage("These data are not correct. Please try again.");
+                            this.doInputsEmpty();
+                            return;
+                        }
+
+                        dataToSend.type = "email",
+                        dataToSend.email = this.email.toLowerCase();
+                        dataToSend.password = this.password;
+                    } else {
+                        if (!this.checkTelData(this.tel)) {
+                            this.showErrorMessage("This telephone is not correct. Please try again.");
+                            this.doInputsEmpty();
+                            return;
+                        }
+
+                        dataToSend.type = "tel";
+                        dataToSend.tel = this.setTelDataToSend(this.tel);
+                    }
+                    dataToSend.task = "logIn";
+                    
+                    let convertedDataToSend = JSON.stringify(dataToSend);
+
+                    let result = await fetch(`/`, {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json;charset=utf-8'
+                        },
+                        body: convertedDataToSend,
+                    }).then(response => response.json());
+                    
+                    if (result.authResult) {
+                        this.isAuthCompleted = true;
+                        this.chooseAuthByEmail();
+                    } else {
+                        this.showErrorMessage("Authorization is not successed. Please try again.");
+                    }
+
+                    this.doInputsEmpty();
+                },
+                // Разлогинивание
+                async logOut() {
+                    let reqBody = JSON.stringify({task: "logOut"});
+
+                    let result = await fetch(`/`, {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json;charset=utf-8'
+                        },
+                        body: reqBody,
+                    }).then(response => response.json());
+
+                    if (result.value) {
+                        this.isAuthCompleted = false;
+                        this.chooseAuthByEmail();
+                    }
+                    
+
+                },
+                // Установить поля в начальное значение
+                doInputsEmpty() {
+                    this.email = "";
+                    this.password = "";
+                    this.tel = "";
+                }
+            }
+        });
+
+        // Регулирование состояния приложения от авторизации
+        async function setClientState() {
+            let result = await fetch("/state").then(response => response.json());
+            application.isAuthCompleted = result.state;
+        }
+
+        setClientState();
+    </script>
+</body>
+</html>
