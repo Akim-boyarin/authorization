@@ -59,4 +59,3 @@ app.post("/", jsonParser, (request, response) => {
 app.listen(port, () => {
     console.log(`Server run on port ${port}`);
 });
-
