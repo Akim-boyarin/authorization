@@ -60,17 +60,3 @@ app.listen(port, () => {
     console.log(`Server run on port ${port}`);
 });
 
-
-/*
-links: 
-https://serene-castle-01898.herokuapp.com/
-https://git.heroku.com/serene-castle-01898.git
-*/
-
-/* 
-Data for test: 
-email: vasily.klyuchnickov@yandex.ru
-password: l8_u_0oA1J_2S6J
-
-tel: +7 (920) 415-89-48
-*/
